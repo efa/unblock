@@ -1,4 +1,4 @@
-/* Unblock v0.00.00a 2024/01/12 Unblock cubic tiles for ZX Spectrum         */
+/* Unblock v0.00.00a 2024/01/14 Unblock cubic tiles for ZX Spectrum         */
 /* Copyright 2023-2024 Valerio Messina http://users.iol.it/efa              */
 /* keys.c is part of Unblock
    Unblock is free software: you can redistribute it and/or modify
@@ -46,69 +46,61 @@ void readKeys() {
    __asm
       PUSH BC
 
-      LD   C, $FE
-      LD   B, $FE ; VCXZc
-      IN   A, (C)
+      LD  BC, $FEFE ; VCXZc
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_keyVCXZc), A
+      DEC A
+      AND A, $1F
+      LD (_keyVCXZc), A
 
-      LD   C, $FE
-      LD   B, $FD ; GFDSA
-      IN   A, (C)
+      LD  BC, $FDFE ; GFDSA
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_keyGFDSA), A
+      DEC A
+      AND A, $1F
+      LD (_keyGFDSA), A
 
-      LD   C, $FE
-      LD   B, $FB ; TREWQ
-      IN   A, (C)
+      LD  BC, $FBFE ; TREWQ
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_keyTREWQ), A
+      DEC A
+      AND A, $1F
+      LD (_keyTREWQ), A
 
-      LD   C, $FE
-      LD   B, $F7 ; 54321
-      IN   A, (C)
+      LD  BC, $F7FE ; 54321
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_key54321), A
+      DEC A
+      AND A, $1F
+      LD (_key54321), A
 
-      LD   C, $FE
-      LD   B, $EF ; 67890
-      IN   A, (C)
+      LD  BC, $EFFE ; 67890
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_key67890), A
+      DEC A
+      AND A, $1F
+      LD (_key67890), A
 
-      LD   C, $FE
-      LD   B, $DF ; YUIOP
-      IN   A, (C)
+      LD  BC, $DFFE ; YUIOP
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_keyYUIOP), A
+      DEC A
+      AND A, $1F
+      LD (_keyYUIOP), A
 
-      LD   C, $FE
-      LD   B, $BF ; HJKLe
-      IN   A, (C)
+      LD  BC, $BFFE ; HJKLe
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_keyHJKLe), A
+      DEC A
+      AND A, $1F
+      LD (_keyHJKLe), A
 
-      LD   C, $FE
-      LD   B, $7F ; BNMys
-      IN   A, (C)
+      LD  BC, $7FFE ; BNMys
+      IN  A, (BC)
       NEG
-      DEC  A
-      AND  A, $1F
-      LD  (_keyBNMys), A
+      DEC A
+      AND A, $1F
+      LD (_keyBNMys), A
 
       POP BC
    __endasm
