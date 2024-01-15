@@ -1,4 +1,4 @@
-/* Unblock v0.00.00a 2024/01/14 Unblock cubic tiles for ZX Spectrum         */
+/* Unblock v0.00.00a 2024/01/15 Unblock cubic tiles for ZX Spectrum         */
 /* Copyright 2023-2024 Valerio Messina http://users.iol.it/efa              */
 /* unblock.c is part of Unblock
    Unblock is free software: you can redistribute it and/or modify
@@ -19,11 +19,12 @@
 // using the x88dk cross-compiler https://github.com/z88dk/z88dk
 
 #include <stdio.h> // printf(): 0,0 up-left, 63,23 down-right
-#include <stdlib.h> // random()
+#include <stdlib.h> // rand(), srand()
 #include <conio.h> // textcolor(), remap with textColor[8]
 #include <graphics.h> // 0,0 up-left, 255,191 down-right, 31,23 char/colors
 
 #define OK 0
+#define WARN 1
 #define ERR 255
 
 #define BLK 0x00 //  0 for textcolor()
@@ -42,7 +43,7 @@
 #define SIZER 4
 #define SIZED 3
 #define SIZEM (SIZED+SIZER+SIZEC)
-#define WAIT 1000 // ms. 100 is smooth
+#define WAIT 100 // ms. 100 is smooth
 #define mSECOND 35
 
 typedef unsigned char  bit;
@@ -50,7 +51,7 @@ typedef unsigned char  u08;
 typedef   signed char  s08;
 typedef unsigned short u16;
 
-#include "keys.c"
+#include "keys.c" // this to avoid a Makefile
 
 u08 sizeM; // contain the shape max side on 3 axis
 u08 co=0; // column origin of current shape side
@@ -59,6 +60,8 @@ u08 ax=0; // pixel absolute shape position x
 u08 ay=0; // pixel absolute shape position y
 u08 sw=0; // pixel shape width
 u08 sh=0; // pixel shape height
+u08 cy=0; // horizontal cursor position y
+u08 cx=0; // vertical   cursor position x
 u08 dtby=0; // when 1 Draw Tiles  on Background layers in Yellow
 u08 dlby=0; // when 1 Draw Layers on Background layers in Yellow
 u16 iblks=0; // initial number of shape blocks
@@ -90,18 +93,18 @@ static char textColor[8] = { 0, 1, 4, 5, 2, 3, 14, 7 };
 // 8        8+------+8+------+8+------+8+------+8+------+8+------+8
 // 0123456780123456780123456780123456780123456780123456780123456780
 
-u08 shape0[SIZED][SIZER][SIZEC]={{{0,0,6,0,0}, // shape[d][r][c]
-                                  {0,0,6,0,0},
-                                  {0,0,6,0,0},
-             /* [0][0][0] ==> */  {0,0,6,0,0}},
-                                 {{1,0,0,0,4},
-                                  {1,0,0,0,4},
-                                  {1,0,0,0,4},
-                                  {1,0,0,0,4}},
-                                 {{0,0,0,0,0},
+u08 shape0[SIZED][SIZER][SIZEC]={{{0,0,0,0,0}, // shape[d][r][c]
                                   {0,0,0,0,0},
                                   {0,0,0,0,0},
-                                  {0,0,0,0,0}}};
+             /* [0][0][0] ==> */  {0,0,0,0,0}},
+                                 {{2,4,0,0,0},
+                                  {2,0,4,0,0},
+                                  {2,0,0,4,0},
+                                  {2,0,0,0,4}},
+                                 {{5,5,5,5,5},
+                                  {5,5,5,5,5},
+                                  {5,5,5,5,5},
+                                  {5,5,5,5,5}}};
 
 u08 shape[SIZEM][SIZEM][SIZEM]; // shape[d][r][c]
 u08 shaps[SIZEM][SIZEM][SIZEM]; // shaps[d][r][c]
@@ -115,16 +118,13 @@ void pause(u16 ms) {
 // read R register, used to have a good randomization
 void readRegR() {
    __asm
-      PUSH BC
       LD  A, R
       LD  (_regR), A
-      POP BC
    __endasm
 } // readRegR()
 
 // fill shape0[] with random faces
 void fillShape() {
-   clg(); // clear
    readRegR();
    srand(regR); 
    for (u08 d=0; d<SIZED; d++) {
@@ -163,7 +163,7 @@ void blankShape(bit e) {
 } // blankShape(bit e)
 
 // init variables and fill shape[] with shape0[]
-void init() {
+void init() { // take care to set co,ro of working shape before call
    fillShape();
    sizeMax();
    blankShape(1);
@@ -182,6 +182,8 @@ void init() {
    ay=ro*8;
    sw=sizeM*8;
    sh=sizeM*8;
+   cy=(ro-1)*8+2; // horizontal cursor position y
+   cx=(co-1)*8+2; // vertical   cursor position x
 } // init()
 
 // delete one tile at r+ro[23:0],c+co[31:0]
@@ -420,6 +422,7 @@ u08 unblockTile(u08 r, u08 c) {
    u08 d;
    switch (tileFace) {
    case 0:
+      ret=WARN;
       tileMov=0;
       break;
    case 1:
@@ -517,7 +520,7 @@ u08 unblockTile(u08 r, u08 c) {
                if(d>tileDepth) { // we are fore layers
                   delTile(r, b);
                   if (dlby==1 && tileDepth>0) dtby=1;
-                  drawTile(r, s, shape[d][r][b]);
+                  drawTile(r, b, shape[d][r][b]);
                   dtby=0;
                }
                d=getShapeDepth(r, b-1); // target pos
@@ -741,7 +744,7 @@ void menu() {
    textcolor(textColor[BLK]);
    printf(" Out   block\n");
    drawTile(10, 10, 6);
-   printf(" Blocks will be blocked by other blocks on the same layer\n\n");
+   printf(" Blocks will be blocked by other blocks on arrow path\n\n");
    printf(" Use IJKL to select a block\n");
    printf(" Use WASD to rotate shape\n");
    printf(" Use SPACE to try unblock selected block\n");
@@ -754,9 +757,8 @@ void menu() {
 } // menu()
 
 void main() {
-   fillShape();
-   co=26; ro=6;
-   init();
+   co=26; ro=6; // working shape origin
+   init(); // take care to set co,ro of working shape before call
    //printf(" sizeM:%u\n", sizeM);
    menu();
    clg(); // clear
@@ -780,14 +782,14 @@ void main() {
    //co=26; ro=1;
    //drawShapeSide();
    //drawShapeLayer(0, 0);
-   co=26; ro=6;
+   co=26; ro=6; // working shape origin
    drawShapeSide();
    //drawShapeLayer(0, 0);
 
    u08 c=0, r=0;
    textcolor(textColor[BLK]);
-   drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
-   drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
+   drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+   drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
 
    while (1) {
       readKeys();
@@ -795,101 +797,116 @@ void main() {
       u08 mov;
       if (keyWdown()) {
          //printf(" w up\n");
-         clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
-         clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          mov=0;
          rotShape(mov);
          clga(ax, ay, sw, sh); // delete shape at ro[23:0],co[31:0]
          drawShapeSide();
          textcolor(textColor[BLK]);
-         drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
-         drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
+         drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
       }
       if (keyDdown()) {
          //printf(" d right\n");
-         clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
-         clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          mov=1;
          rotShape(mov);
          clga(ax, ay, sw, sh); // delete shape at ro[23:0],co[31:0]
          drawShapeSide();
          textcolor(textColor[BLK]);
-         drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
-         drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
+         drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
       }
       if (keySdown()) {
          //printf(" s down\n");
-         clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
-         clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          mov=2;
          rotShape(mov);
          clga(ax, ay, sw, sh); // delete shape at ro[23:0],co[31:0]
          drawShapeSide();
          textcolor(textColor[BLK]);
-         drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
-         drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
+         drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
       }
       if (keyAdown()) {
          //printf(" a left\n");
-         clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
-         clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          mov=3;
          rotShape(mov);
          clga(ax, ay, sw, sh); // delete shape at ro[23:0],co[31:0]
          drawShapeSide();
          textcolor(textColor[BLK]);
-         drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
-         drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
+         drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
       }
       // block selection
       if (keyIdown()) {
          //printf("i");
          if(r>0) {
-            clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
+            clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
             r--;
             textcolor(textColor[BLK]);
-            drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
+            drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          }
       }
       if (keyJdown()) {
          //printf("j");
          if(c>0) {
-            clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
+            clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
             c--;
             textcolor(textColor[BLK]);
-            drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
+            drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          }
       }
       if (keyKdown()) {
          //printf("k");
          if(r<sizeM) {
-            clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
+            clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
             r++;
             textcolor(textColor[BLK]);
-            drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
+            drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          }
       }
       if (keyLdown()) {
          //printf("l");
          if(c<sizeM) {
-            clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
+            clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
             c++;
             textcolor(textColor[BLK]);
-            drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
+            drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          }
       }
       if (keySPdown()) {
          //printf("SP ");
          //printf("r:%u c:%u\n", r, c);
-         clga((co+c)*8+2, (ro-1)*8+2, 4, 4);
-         clga((co-1)*8+2, (ro+r)*8+2, 4, 4);
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          ret=unblockTile(r, c);
          if (ret==0) cblks--;
          textcolor(textColor[BLK]);
-         drawb((co+c)*8+2, (ro-1)*8+2, 4, 4); // horizontal cursor
-         drawb((co-1)*8+2, (ro+r)*8+2, 4, 4); // vertical   cursor
+         drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          //clga(1, 1, 8*20, 15);
          //printf(" blks:%u/%u\n", cblks, iblks);
+      }
+      if (keyENdown()) {
+         //printf("EN ");
+         //printf("r:%u c:%u\n", r, c);
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
+         ret=getShapeDepth(r, c);
+         shape[ret][r][c]=0;
+         delTile(r, c);
+         if (ret!=0) cblks--;
+         ret=getShapeDepth(r, c);// restore back
+         if(ret<sizeM) drawTile(r, c, shape[ret][r][c]);
+         textcolor(textColor[BLK]);
+         drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
       }
       pause(132);
       if (cblks==0) {

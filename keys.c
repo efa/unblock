@@ -1,4 +1,4 @@
-/* Unblock v0.00.00a 2024/01/14 Unblock cubic tiles for ZX Spectrum         */
+/* Unblock v0.00.00a 2024/01/15 Unblock cubic tiles for ZX Spectrum         */
 /* Copyright 2023-2024 Valerio Messina http://users.iol.it/efa              */
 /* keys.c is part of Unblock
    Unblock is free software: you can redistribute it and/or modify
@@ -110,7 +110,7 @@ u08 keyVdown()  { return keyVCXZc & 0x10 ? 1 : 0; }
 u08 keyCdown()  { return keyVCXZc & 0x08 ? 1 : 0; }
 u08 keyXdown()  { return keyVCXZc & 0x04 ? 1 : 0; }
 u08 keyZdown()  { return keyVCXZc & 0x02 ? 1 : 0; }
-u08 keyCSdown() { return keyVCXZc & 0x01 ? 1 : 0; }
+u08 keyCSdown() { return keyVCXZc & 0x01 ? 1 : 0; } // Caps shift
 
 u08 keyGdown()  { return keyGFDSA & 0x10 ? 1 : 0; }
 u08 keyFdown()  { return keyGFDSA & 0x08 ? 1 : 0; }
@@ -146,10 +146,10 @@ u08 keyHdown()  { return keyHJKLe & 0x10 ? 1 : 0; }
 u08 keyJdown()  { return keyHJKLe & 0x08 ? 1 : 0; }
 u08 keyKdown()  { return keyHJKLe & 0x04 ? 1 : 0; }
 u08 keyLdown()  { return keyHJKLe & 0x02 ? 1 : 0; }
-u08 keyENdown() { return keyHJKLe & 0x01 ? 1 : 0; }
+u08 keyENdown() { return keyHJKLe & 0x01 ? 1 : 0; } // Enter
 
 u08 keyBdown()  { return keyBNMys & 0x10 ? 1 : 0; }
 u08 keyNdown()  { return keyBNMys & 0x08 ? 1 : 0; }
 u08 keyMdown()  { return keyBNMys & 0x04 ? 1 : 0; }
-u08 keySSdown() { return keyBNMys & 0x02 ? 1 : 0; }
-u08 keySPdown() { return keyBNMys & 0x01 ? 1 : 0; }
+u08 keySSdown() { return keyBNMys & 0x02 ? 1 : 0; } // Symbol shift
+u08 keySPdown() { return keyBNMys & 0x01 ? 1 : 0; } // Space
