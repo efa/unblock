@@ -66,6 +66,7 @@ u08 dtby=0; // when 1 Draw Tiles  on Background layers in Yellow
 u08 dlby=0; // when 1 Draw Layers on Background layers in Yellow
 u16 iblks=0; // initial number of shape blocks
 u16 cblks=0; // number of current shape blocks
+u08 bombs=0; // number or remaining bombs
 
 u08 tileFace=0; // current face of current tile
 u08 tileDepth=0; // layer depth of current tile
@@ -184,6 +185,7 @@ void init() { // take care to set co,ro of working shape before call
    sh=sizeM*8;
    cy=(ro-1)*8+2; // horizontal cursor position y
    cx=(co-1)*8+2; // vertical   cursor position x
+   bombs=sizeM; // as now as max side size
 } // init()
 
 // delete one tile at r+ro[23:0],c+co[31:0]
@@ -748,6 +750,7 @@ void menu() {
    printf(" Use IJKL to select a block\n");
    printf(" Use WASD to rotate shape\n");
    printf(" Use SPACE to try unblock selected block\n");
+   printf(" Use ENTER to destroy selected block (max %u times)\n", bombs);
    printf("\n SPACE to start\n");
    drawb(0,0,256,192);
    while (1) {
@@ -768,7 +771,7 @@ void main() {
    printf("\x1B\x59\x20\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
    printf("\n");
    printf(" Shape sized:%ux%ux%u\n", sizeM, sizeM, sizeM);
-   printf(" blks:%u/%u\n", cblks, iblks);
+   printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
    //printf("                            Layer 0     Layer 1     Layer 2\n");
    drawb(0,0,256,192);
 
@@ -891,25 +894,27 @@ void main() {
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          clga( 0, 16, 64, 8);
          printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
-         printf(" blks:%u/%u\n", cblks, iblks);
+         printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
       }
-      if (keyENdown()) {
+      if (keyENdown() && bombs>0) {
          //printf("EN ");
          //printf("r:%u c:%u\n", r, c);
          clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
          clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
+         ret=getShapeFace(r, c);
+         if (ret!=0) cblks--;
+         bombs--;
          ret=getShapeDepth(r, c);
          shape[ret][r][c]=0;
          delTile(r, c);
-         if (ret!=0) cblks--;
          ret=getShapeDepth(r, c);// restore back
          if(ret<sizeM) drawTile(r, c, shape[ret][r][c]);
          textcolor(textColor[BLK]);
          drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
-         clga( 0, 16, 64, 8);
+         clga( 0, 16, 100, 8);
          printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
-         printf(" blks:%u/%u\n", cblks, iblks);
+         printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
       }
       pause(132);
       if (cblks==0) {
