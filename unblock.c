@@ -1,4 +1,4 @@
-/* Unblock v0.00.00a 2024/01/15 Unblock cubic tiles for ZX Spectrum         */
+/* Unblock v0.00.00a 2024/01/16 Unblock cubic tiles for ZX Spectrum         */
 /* Copyright 2023-2024 Valerio Messina http://users.iol.it/efa              */
 /* unblock.c is part of Unblock
    Unblock is free software: you can redistribute it and/or modify
@@ -762,15 +762,14 @@ void main() {
    //printf(" sizeM:%u\n", sizeM);
    menu();
    clg(); // clear
-   printf("\n");
-   printf("\n");
-   //puts("\x16\x02\x02" " blks");
-   printf(" blks:%u/%u\n", cblks, iblks);
-   printf(" Shape sized:%ux%ux%u\n", sizeM, sizeM, sizeM);
-   printf(" Unblock cubic vector tiles for ZX Spectrum 48k\n");
-   //printf("\n\n\n\n\n");
-   //printf("                            Layer 0     Layer 1     Layer 2\n");
    textcolor(textColor[BLK]);
+   printf("\x1B\x59\x36\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+   printf(" Unblock cubic vector tiles for ZX Spectrum 48k\n");
+   printf("\x1B\x59\x20\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+   printf("\n");
+   printf(" Shape sized:%ux%ux%u\n", sizeM, sizeM, sizeM);
+   printf(" blks:%u/%u\n", cblks, iblks);
+   //printf("                            Layer 0     Layer 1     Layer 2\n");
    drawb(0,0,256,192);
 
    ro=1;
@@ -890,8 +889,9 @@ void main() {
          textcolor(textColor[BLK]);
          drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
-         //clga(1, 1, 8*20, 15);
-         //printf(" blks:%u/%u\n", cblks, iblks);
+         clga( 0, 16, 64, 8);
+         printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+         printf(" blks:%u/%u\n", cblks, iblks);
       }
       if (keyENdown()) {
          //printf("EN ");
@@ -907,6 +907,9 @@ void main() {
          textcolor(textColor[BLK]);
          drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
+         clga( 0, 16, 64, 8);
+         printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+         printf(" blks:%u/%u\n", cblks, iblks);
       }
       pause(132);
       if (cblks==0) {
