@@ -1,4 +1,4 @@
-/* Unblock v0.00.00a 2024/01/16 Unblock cubic tiles for ZX Spectrum         */
+/* Unblock v0.00.00a 2024/01/23 Unblock cubic tiles for ZX Spectrum         */
 /* Copyright 2023-2024 Valerio Messina http://users.iol.it/efa              */
 /* unblock.c is part of Unblock
    Unblock is free software: you can redistribute it and/or modify
@@ -18,9 +18,9 @@
 // Generate with: $ zcc +zx -vn -lndos -lm -create-app unblock.c -o unblock.ZX8
 // using the x88dk cross-compiler https://github.com/z88dk/z88dk
 
-#include <stdio.h> // printf(): 0,0 up-left, 63,23 down-right
+#include <stdio.h>  // printf(): 0,0 up-left, 63,23 down-right
 #include <stdlib.h> // rand(), srand()
-#include <conio.h> // textcolor(), remap with textColor[8]
+#include <conio.h>  // textcolor(), remap with textColor[8]
 #include <graphics.h> // 0,0 up-left, 255,191 down-right, 31,23 char/colors
 
 #define OK 0
@@ -52,8 +52,9 @@ typedef   signed char  s08;
 typedef unsigned short u16;
 
 #include "keys.c" // this to avoid a Makefile
+#include "iso.c" // this to avoid a Makefile
 
-u08 sizeM; // contain the shape max side on 3 axis
+u08 sizeM=0; // contain the shape max side on 3 axis
 u08 co=0; // column origin of current shape side
 u08 ro=0; // row    origin of current shape side
 u08 ax=0; // pixel absolute shape position x
@@ -67,6 +68,7 @@ u08 dlby=0; // when 1 Draw Layers on Background layers in Yellow
 u16 iblks=0; // initial number of shape blocks
 u16 cblks=0; // number of current shape blocks
 u08 bombs=0; // number or remaining bombs
+u08 mode=0; // top, ortho or iso
 
 u08 tileFace=0; // current face of current tile
 u08 tileDepth=0; // layer depth of current tile
@@ -95,9 +97,9 @@ static char textColor[8] = { 0, 1, 4, 5, 2, 3, 14, 7 };
 // 0123456780123456780123456780123456780123456780123456780123456780
 
 u08 shape0[SIZED][SIZER][SIZEC]={{{0,0,0,0,0}, // shape[d][r][c]
+            /* [0][0][0] ==>// */ {0,0,0,0,0},
                                   {0,0,0,0,0},
-                                  {0,0,0,0,0},
-             /* [0][0][0] ==> */  {0,0,0,0,0}},
+                                  {0,0,0,0,0}},
                                  {{2,4,0,0,0},
                                   {2,0,4,0,0},
                                   {2,0,0,4,0},
@@ -750,13 +752,36 @@ void menu() {
    printf(" Use IJKL to select a block\n");
    printf(" Use WASD to rotate shape\n");
    printf(" Use SPACE to try unblock selected block\n");
-   printf(" Use ENTER to destroy selected block (max %u times)\n", bombs);
+   printf(" Use ENTER to destroy selected block (max %u times)\n\n", bombs);
+   printf(" >1 - top view\n");
+   printf("  2 - ortho multiview\n");
+   printf("  3 - isometric projection\n");
    printf("\n SPACE to start\n");
    drawb(0,0,256,192);
+   mode=1;
    while (1) {
       readKeys();
+      if (key1down()) {
+         clga(4, 144, 4, 24);
+         printf("\x1B\x59\x32\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+         mode=1;
+         printf(" >");
+      }
+      if (key2down()) {
+         clga(4, 144, 4, 24);
+         printf("\x1B\x59\x33\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+         mode=2;
+         printf(" >");
+      }
+      if (key3down()) {
+         clga(4, 144, 4, 24);
+         printf("\x1B\x59\x34\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+         mode=3;
+         printf(" >");
+      }
       if (keySPdown()) break;
    }
+   if (mode==3) iso();
 } // menu()
 
 void main() {
@@ -882,7 +907,7 @@ void main() {
             drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          }
       }
-      if (keySPdown()) {
+      if (keySPdown()) { // unblock
          //printf("SP ");
          //printf("r:%u c:%u\n", r, c);
          clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
@@ -896,20 +921,22 @@ void main() {
          printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
          printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
       }
-      if (keyENdown() && bombs>0) {
+      if (keyENdown() && bombs>0) { // bomb
          //printf("EN ");
          //printf("r:%u c:%u\n", r, c);
          clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
          clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          ret=getShapeFace(r, c);
-         if (ret!=0) cblks--;
-         bombs--;
-         ret=getShapeDepth(r, c);
-         shape[ret][r][c]=0;
-         delTile(r, c);
-         ret=getShapeDepth(r, c);// restore back
-         if(ret<sizeM) drawTile(r, c, shape[ret][r][c]);
-         textcolor(textColor[BLK]);
+         if (ret!=0) {
+            cblks--;
+            bombs--;
+            ret=getShapeDepth(r, c);
+            shape[ret][r][c]=0;
+            delTile(r, c);
+            ret=getShapeDepth(r, c); // restore back
+            if(ret<sizeM) drawTile(r, c, shape[ret][r][c]);
+            textcolor(textColor[BLK]);
+         }
          drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          clga( 0, 16, 100, 8);
