@@ -51,9 +51,6 @@ typedef unsigned char  u08;
 typedef   signed char  s08;
 typedef unsigned short u16;
 
-#include "keys.c" // this to avoid a Makefile
-#include "iso.c" // this to avoid a Makefile
-
 u08 sizeM=0; // contain the shape max side on 3 axis
 u08 co=0; // column origin of current shape side
 u08 ro=0; // row    origin of current shape side
@@ -81,20 +78,23 @@ extern u08 regR; // R register value
 defb 0
 #endasm
 
+#include "keys.c" // this to avoid a Makefile
+#include "iso.c"  // this to avoid a Makefile
+
 static char textColor[8] = { 0, 1, 4, 5, 2, 3, 14, 7 };
 
-// tile
-// face:0       ^1       >2       v3       <4       x5       .6    
-// 0123456780123456780123456780123456780123456780123456780123456780
-// 1        1+------+1+------+1+------+1+------+1+------+1+------+1
-// 2        2|      |2|  O   |2|      |2|   O  |2|      |2|      |2
-// 3        3|  OO  |3|   O  |3|  OO  |3|  O   |3| O  O |3|      |3
-// 4        4| OOOO |4| OOOO |4|O OO O|4| OOOO |4|  OO  |4|  OO  |4
-// 5        5|O OO O|5| OOOO |5| OOOO |5| OOOO |5|  OO  |5|  OO  |5
-// 6        6|  OO  |6|   O  |6|  OO  |6|  O   |6| O  O |6|      |6
-// 7        7|      |7|  O   |7|      |7|   O  |7|      |7|      |7
-// 8        8+------+8+------+8+------+8+------+8+------+8+------+8
-// 0123456780123456780123456780123456780123456780123456780123456780
+/* tile
+   face:0       ^1       >2       v3       <4       x5       .6    
+   0123456780123456780123456780123456780123456780123456780123456780
+   1        1+------+1+------+1+------+1+------+1+------+1+------+1
+   2        2|      |2|  O   |2|      |2|   O  |2|      |2|      |2
+   3        3|  OO  |3|   O  |3|  OO  |3|  O   |3| O  O |3|      |3
+   4        4| OOOO |4| OOOO |4|O OO O|4| OOOO |4|  OO  |4|  OO  |4
+   5        5|O OO O|5| OOOO |5| OOOO |5| OOOO |5|  OO  |5|  OO  |5
+   6        6|  OO  |6|   O  |6|  OO  |6|  O   |6| O  O |6|      |6
+   7        7|      |7|  O   |7|      |7|   O  |7|      |7|      |7
+   8        8+------+8+------+8+------+8+------+8+------+8+------+8
+   0123456780123456780123456780123456780123456780123456780123456780 */
 
 u08 shape0[SIZED][SIZER][SIZEC]={{{0,0,0,0,0}, // shape[d][r][c]
             /* [0][0][0] ==>// */ {0,0,0,0,0},

@@ -60,7 +60,7 @@ u08 faces[7][SIZE][SIZE]= {{{1,1,1,1,1,1,1,1,1,1,1}, // 0
                             {1,0,0,0,0,1,0,0,0,0,1},
                             {1,0,0,0,0,0,0,0,0,0,1},
                             {1,1,1,1,1,1,1,1,1,1,1}},
-                           {{1,1,1,1,1,1,1,1,1,1,1}, // 4>
+                           {{1,1,1,1,1,1,1,1,1,1,1}, // 4<
                             {1,0,0,0,0,0,1,0,0,0,1},
                             {1,0,0,0,0,1,0,0,0,0,1},
                             {1,0,0,0,1,0,0,0,0,0,1},
@@ -96,13 +96,14 @@ u08 faces[7][SIZE][SIZE]= {{{1,1,1,1,1,1,1,1,1,1,1}, // 0
 
 u08 block[SIZE][SIZE][SIZE]; // block[z][y][x]
 
+// fill block[] with (right) face
 u08 fillBlk(u08 face) {
    switch(face) {
    case 0: // 
       for (u08 y=0; y<SIZE; y++) {
          for (u08 x=0; x<SIZE; x++) {
             block[0][y][x]=faces[0][y][x]; // right face
-            block[x][y][0]=faces[0][y][x]; // left  face
+            block[y][x][0]=faces[0][y][x]; // left  face
             block[y][0][x]=faces[0][y][x]; // top   face
          }
       }
@@ -163,27 +164,69 @@ u08 fillBlk(u08 face) {
    } // switch(face)
 } // u08 fillBlk(u08 face)
 
-void iso() {
-   clg(); // clear
-   drawb(0,0,256,192);
-   for (u08 f=0; f<7; f++) {
-      fillBlk(f);
-      for (u08 z=0; z<SIZE; z++) {
-         for (u08 y=0; y<SIZE; y++) {
-            for (u08 x=0; x<SIZE; x++) {
-               if(z>0 && y>0 && x>0) break; // skip hidden lines
-               u08 px=block[z][y][x];
-               if(px==1) {
-                  //printf("z:%u y:%u x:%u px:%u\n", z, y, x, px);
-                  u08 x2 = SIZE -  z + x;          // isometric projection
-                  u08 y2 = SIZE - (z + x) / 2 + y; // isometric projection
-                  x2=x2+60+f*20;
-                  y2=y2+90;
-                  plot(x2, y2);
+/* hFace
+   /|\   
+  /3|2\  
+ |\ | /| 
+ |4\|/1| 
+ | /|\ | 
+ |/5|0\| 
+  \ | /  
+   \|/   */
+
+// draw at ax,ay an half face in isometric projection
+void drawHalfFace(u08 face, u08 hFace) {
+   if (face > 6 || hFace > 5) return;
+   fillBlk(face);
+   for (u08 z=0; z<SIZE; z++) {
+      for (u08 y=0; y<SIZE; y++) {
+         for (u08 x=0; x<SIZE; x++) {
+            if(z>0 && y>0 && x>0) break; // skip hidden lines
+            u08 px=block[z][y][x];
+            if(px==1) {
+               //printf("z:%u y:%u x:%u px:%u\n", z, y, x, px);
+               switch (hFace) {
+               case 0:
+                  if (z>0 || x>y) goto skip; // skip to next pixel
+                  break;
+               case 1:
+                  if (z>0 || y>x) goto skip; // skip to next pixel
+                  break;
+               case 2:
+                  if (y>0 || z>x) goto skip; // skip to next pixel
+                  break;
+               case 3:
+                  if (y>0 || x>z) goto skip; // skip to next pixel
+                  break;
+               case 4:
+                  if (x>0 || y>z) goto skip; // skip to next pixel
+                  break;
+               case 5:
+                  if (x>0 || z>y) goto skip; // skip to next pixel
                }
+               u08 x2 = SIZE -  z + x;          // isometric projection
+               u08 y2 = SIZE - (z + x) / 2 + y; // isometric projection
+               x2=x2+ax;
+               y2=y2+ay;
+               plot(x2, y2);
+               skip:
             }
          }
       }
    }
+} // void drawHalfFace(u08 face, u08 hFace)
+
+// draw 7 blocks with all faces
+void iso() {
+   clg(); // clear
+   drawb(0,0,256,192);
+   ax=40; // pixel absolute shape position x
+   ay=90; // pixel absolute shape position y
+   for (u08 f=0; f<7; f++) {
+      ax=ax+20;
+      for (u08 hf=0; hf<6; hf++) {
+         drawHalfFace(f, hf);
+      }
+   } // for face
    while(1);
 } // void iso()
