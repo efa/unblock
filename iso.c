@@ -373,26 +373,37 @@ void drawHalfFace2(u08 face, u08 hFace) {
       case 0:
          draw(ax+20, ay+15, ax+10, ay+20);
          drawr(0, -10);
+         draw(ax+16, ay+16, ax+12, ay+14);
+         draw(ax+13, ay+13, ax+15, ay+13);
          break;
       case 1:
          draw(ax+20, ay+15, ax+20, ay+5);
          drawr(-10, 5);
+         draw(ax+15, ay+13, ax+18, ay+11);
+         draw(ax+13, ay+12, ax+16, ay+9);
          break;
       case 2:
          draw(ax+10, ay, ax+20, ay+5);
          drawr(-10, 5);
+         draw(ax+10, ay+5, ax+13, ay+4);
+         draw(ax+10, ay+7, ax+13, ay+7);
          break;
       case 3:
          draw(ax+10, ay, ax, ay+5);
          drawr(10, 5);
+         plot(ax+9,ay+7);
+         draw(ax+7, ay+3, ax+7, ay+7);
+         draw(ax+8, ay+7, ax+10, ay+5);
          break;
       case 4:
          draw(ax, ay+15, ax, ay+5);
          drawr(10, 5);
+         plot(ax+5,ay+13);
          break;
       case 5:
          draw(ax, ay+15, ax+10, ay+20);
          drawr(0, -10);
+         plot(ax+5,ay+13);
       } // switch (hFace)
       break;
    case 5:
@@ -400,26 +411,40 @@ void drawHalfFace2(u08 face, u08 hFace) {
       case 0:
          draw(ax+20, ay+15, ax+10, ay+20);
          drawr(0, -10);
+         draw(ax+12, ay+17, ax+15, ay+13);
+         draw(ax+16, ay+13, ax+18, ay+8);
          break;
       case 1:
          draw(ax+20, ay+15, ax+20, ay+5);
          drawr(-10, 5);
+         draw(ax+12, ay+11, ax+18, ay+14);
+         draw(ax+12, ay+11, ax+18, ay+14);
          break;
       case 2:
          draw(ax+10, ay, ax+20, ay+5);
          drawr(-10, 5);
+         draw(ax+10, ay+6, ax+13, ay+7);
+         draw(ax+10, ay+4, ax+15, ay+4);
          break;
       case 3:
          draw(ax+10, ay, ax, ay+5);
          drawr(10, 5);
+         draw(ax+7, ay+4, ax+7, ay+8);
+         draw(ax+7, ay+4, ax+10, ay+4);
+         draw(ax+7, ay+4, ax+9, ay+5);
          break;
       case 4:
          draw(ax, ay+15, ax, ay+5);
          drawr(10, 5);
+         draw(ax+3, ay+11, ax+5, ay+13);
+         draw(ax+3, ay+11, ax+6, ay+9);
+         draw(ax+2, ay+11, ax+3, ay+13);
          break;
       case 5:
          draw(ax, ay+15, ax+10, ay+20);
          drawr(0, -10);
+         draw(ax+5, ay+13, ax+8, ay+14);
+         draw(ax+4, ay+14, ax+6, ay+17);
       } // switch (hFace)
       break;
    case 6:
@@ -427,26 +452,38 @@ void drawHalfFace2(u08 face, u08 hFace) {
       case 0:
          draw(ax+20, ay+15, ax+10, ay+20);
          drawr(0, -10);
+         plot(ax+15,ay+13);
          break;
       case 1:
          draw(ax+20, ay+15, ax+20, ay+5);
          drawr(-10, 5);
+         plot(ax+15,ay+13);
          break;
       case 2:
          draw(ax+10, ay, ax+20, ay+5);
          drawr(-10, 5);
+         draw(ax+13, ay+7, ax+13, ay+3);
+         draw(ax+13, ay+7, ax+10, ay+5);
+         draw(ax+13, ay+7, ax+10, ay+7);
          break;
       case 3:
          draw(ax+10, ay, ax, ay+5);
          drawr(10, 5);
+         draw(ax+10, ay+7, ax+5, ay+7);
+         draw(ax+7, ay+4, ax+10, ay+5);
          break;
       case 4:
          draw(ax, ay+15, ax, ay+5);
          drawr(10, 5);
+         draw(ax+2, ay+11, ax+5, ay+13);
+         draw(ax+4, ay+9, ax+7, ay+12);
          break;
       case 5:
          draw(ax, ay+15, ax+10, ay+20);
          drawr(0, -10);
+         plot(ax+7,ay+13);
+         draw(ax+4, ay+16, ax+8, ay+14);
+         draw(ax+5, ay+13, ax+8, ay+14);
       } // switch (hFace)
    } // switch (face)
 } // void drawHalfFace(u08 face, u08 hFace)
@@ -465,6 +502,7 @@ void drawHalfFace2(u08 face, u08 hFace) {
 void iso() {
    clg(); // clear
    drawb(0,0,256,192);
+//#if 0
    ax=20; // pixel absolute shape position x
    ay=54; // pixel absolute shape position y
    for (u08 f=0; f<7; f++) {
@@ -473,7 +511,6 @@ void iso() {
          drawHalfFace(f, hf);
       }
    } // for face
-#if 0
    ax=20; // pixel absolute shape position x
    ay=78; // pixel absolute shape position y
    for (u08 f=0; f<7; f++) {
@@ -504,7 +541,7 @@ void iso() {
       }
       ay=ay-6;
    } // for face
-#endif
+//#endif
    ax=21; // pixel absolute shape position x
    ay=140; // pixel absolute shape position y
    for (u08 f=0; f<7; f++) {
