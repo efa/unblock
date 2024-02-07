@@ -66,6 +66,7 @@ u16 iblks=0; // initial number of shape blocks
 u16 cblks=0; // number of current shape blocks
 u08 bombs=0; // number or remaining bombs
 u08 mode=0; // top, ortho or iso
+u08 col=0; // color mode
 
 u08 tileFace=0; // current face of current tile
 u08 tileDepth=0; // layer depth of current tile
@@ -209,27 +210,31 @@ u08 drawTile(u08 r, u08 c, u08 face) {
    if (ca>31 || ra>23 || face>6) return ERR;
    u08 x = ca*8;
    u08 y = ra*8;
-   if (face>0) drawb(x, y, 8, 8);
-   switch (face) {
-   case 1:
-      textcolor(textColor[BLU]);
-      break;
-   case 2:
-      textcolor(textColor[MAG]);
-      break;
-   case 3:
-      textcolor(textColor[RED]);
-      break;
-   case 4:
-      textcolor(textColor[GRE]);
-      break;
-   case 5:
-      textcolor(textColor[CYA]);
-      break;
-   case 6:
-      textcolor(textColor[BLK]);
+   if (col==255) {
+      switch (face) {
+      case 1:
+         textcolor(textColor[BLU]);
+         break;
+      case 2:
+         textcolor(textColor[MAG]);
+         break;
+      case 3:
+         textcolor(textColor[RED]);
+         break;
+      case 4:
+         textcolor(textColor[GRE]);
+         break;
+      case 5:
+         textcolor(textColor[CYA]);
+         break;
+      case 6:
+         textcolor(textColor[BLK]);
+      }
+      if (dtby==1) textcolor(textColor[YEL]);
+   } else {
+      textcolor(textColor[col]);
    }
-   if (dtby==1) textcolor(textColor[YEL]);
+   if (face>0) drawb(x, y, 8, 8);
    //if (rot>0 && face>=1 && face<=4) {
    //   face=face+rot;
    //   if (face>4) face=face-4;
@@ -271,11 +276,12 @@ u08 drawTile(u08 r, u08 c, u08 face) {
    return OK;
 } // drawTile(u08 r, u08 c, u08 face)
 
-// draw at ro,co one layer 'depth', hide=1 only uncovered, seen from 'shapeSide' rotated 'shapeRot'
+// draw at ro,co one layer 'depth', hide=1 only uncovered
 u08 drawShapeLayer(u08 depth, bit hide) {
    if (co>31 || ro>23) return ERR;
    if (depth>=sizeM) return ERR;
    if (dlby==1 && depth>0) dtby=1;
+   if (col!=255) col=depth;
    for (u08 r=0; r<sizeM; r++) {
       for (u08 c=0; c<sizeM; c++) {
          bit v;
@@ -292,7 +298,7 @@ u08 drawShapeLayer(u08 depth, bit hide) {
    return OK;
 } // drawShapeLayer(u08 depth, bit hide)
 
-// draw at ro,co the shape seen from 'shapeSide' rotated 'shapeRot'
+// draw at ro,co the shape
 u08 drawShapeSide() {
    if (co>31 || ro>23) return ERR;
    for (s08 d=sizeM-1; d>=0; d--) {
@@ -349,7 +355,7 @@ u08 calcTileFace(u08 face, u08 mov) {
    return ret;
 } // u08 calcTileFace(u08 face, u08 mov)
 
-// rotate 'shape[]' on 'mov' (use 'shaps[]' as tmp)
+// rotate 'shape[]' on 'mov', will use 'shaps[]' as tmp
 u08 rotShape(u08 mov) {
    if (mov>3) return ERR;
    //printf(" shapeSide:%u shapeRot:%u mov:%u\n", shapeSide, shapeRot, mov);
@@ -442,6 +448,7 @@ u08 unblockTile(u08 r, u08 c) {
                delTile(s+1, c);
                //printf(" restore back\n");
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=d;
                drawTile(s+1, c, shape[d][s+1][c]);
                dtby=0;
             }
@@ -451,6 +458,7 @@ u08 unblockTile(u08 r, u08 c) {
             if (d>tileDepth) { // only back layers
                delTile(s, c);
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=tileDepth;
                drawTile(s, c, tileFace);
                dtby=0;
             } // else printf(" we are back\n");
@@ -466,6 +474,7 @@ u08 unblockTile(u08 r, u08 c) {
                if(d>tileDepth) { // we are fore layers
                   delTile(b, c);
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=d;
                   drawTile(b, c, shape[d][b][c]);
                   dtby=0;
                }
@@ -475,6 +484,7 @@ u08 unblockTile(u08 r, u08 c) {
                   delTile(b+1, c);
                   //printf(" restore back\n");
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=tileDepth;
                   drawTile(b+1, c, tileFace);
                   dtby=0;
                } // else printf(" we are back\n");
@@ -500,6 +510,7 @@ u08 unblockTile(u08 r, u08 c) {
                delTile(r, s-1);
                //printf(" restore back\n");
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=d;
                drawTile(r, s-1, shape[d][r][s-1]);
                dtby=0;
             }
@@ -509,6 +520,7 @@ u08 unblockTile(u08 r, u08 c) {
             if (d>tileDepth) { // only back layers
                delTile(r, s);
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=tileDepth;
                drawTile(r, s, tileFace);
                dtby=0;
             } // else printf(" we are back\n");
@@ -524,6 +536,7 @@ u08 unblockTile(u08 r, u08 c) {
                if(d>tileDepth) { // we are fore layers
                   delTile(r, b);
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=d;
                   drawTile(r, b, shape[d][r][b]);
                   dtby=0;
                }
@@ -533,6 +546,7 @@ u08 unblockTile(u08 r, u08 c) {
                   delTile(r, b-1);
                   //printf(" restore back\n");
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=tileDepth;
                   drawTile(r, b-1, tileFace);
                   dtby=0;
                } // else printf(" we are back\n");
@@ -559,6 +573,7 @@ u08 unblockTile(u08 r, u08 c) {
                delTile(s-1, c);
                //printf(" restore back\n");
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=d;
                drawTile(s-1, c, shape[d][s-1][c]);
                dtby=0;
             }
@@ -568,6 +583,7 @@ u08 unblockTile(u08 r, u08 c) {
             if (d>tileDepth) { // only back layers
                delTile(s, c);
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=tileDepth;
                drawTile(s, c, tileFace);
                dtby=0;
             } // else printf(" we are back\n");
@@ -583,6 +599,7 @@ u08 unblockTile(u08 r, u08 c) {
                if(d>tileDepth) { // we are fore layers
                   delTile(b, c);
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=d;
                   drawTile(b, c, shape[d][b][c]);
                   dtby=0;
                }
@@ -592,6 +609,7 @@ u08 unblockTile(u08 r, u08 c) {
                   delTile(b-1, c);
                   //printf(" restore back\n");
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=tileDepth;
                   drawTile(b-1, c, tileFace);
                   dtby=0;
                } // else printf(" we are back\n");
@@ -618,6 +636,7 @@ u08 unblockTile(u08 r, u08 c) {
                delTile(r, s+1);
                //printf(" restore back\n");
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=d;
                drawTile(r, s+1, shape[d][r][s+1]);
                dtby=0;
             }
@@ -627,6 +646,7 @@ u08 unblockTile(u08 r, u08 c) {
             if (d>tileDepth) { // only back layers
                delTile(r, s);
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=tileDepth;
                drawTile(r, s, tileFace);
                dtby=0;
             } // else printf(" we are back\n");
@@ -643,6 +663,7 @@ u08 unblockTile(u08 r, u08 c) {
                   delTile(r, b);
                   //printf(" restore back\n");
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=d;
                   drawTile(r, b, shape[d][r][b]);
                   dtby=0;
                }
@@ -651,6 +672,7 @@ u08 unblockTile(u08 r, u08 c) {
                if (d>tileDepth) { // only back layers
                   delTile(r, b+1);
                   if (dlby==1 && tileDepth>0) dtby=1;
+                  if (col!=255) col=tileDepth;
                   drawTile(r, b+1, tileFace);
                   dtby=0;
                } // else printf(" we are back\n");
@@ -676,6 +698,7 @@ u08 unblockTile(u08 r, u08 c) {
             shape[s][r][c]=tileFace;
             delTile(r, c);
             if (dlby==1 && s>0) dtby=1;
+            if (col!=255) col=s;
             drawTile(r, c, tileFace);
             dtby=0;
             tileMov=s-tileDepth-1;
@@ -689,6 +712,7 @@ u08 unblockTile(u08 r, u08 c) {
                shape[b-1][r][c]=tileFace;
                delTile(r, c);
                if (dlby==1 && tileDepth>0) dtby=1;
+               if (col!=255) col=b-1;
                drawTile(r, c, tileFace);
                dtby=0;
                pause(WAIT);
@@ -709,6 +733,7 @@ u08 unblockTile(u08 r, u08 c) {
             //printf(" move over\n");
             delTile(r, c);
             if (dlby==1 && s>0) dtby=1;
+            if (col!=255) col=s;
             drawTile(r, c, tileFace);
             dtby=0;
             tileMov=tileDepth-s;
@@ -717,6 +742,8 @@ u08 unblockTile(u08 r, u08 c) {
       } // for
       delTile(r, c); // remove tile out of shape
       face=getShapeFace(r, c); // tile below
+      d=getShapeDepth(r, c); // tile below
+      if (col!=255) col=d;
       drawTile(r, c, face);
    } // switch (tileFace)
    return ret;
@@ -731,6 +758,7 @@ void menu() {
    printf("\n");
    printf(" All blocks moves in arrow direction:\n");
    printf(" Up    block\n");
+   mode=1; col=255;
    co=0; ro=0;
    drawTile( 5, 10, 1);
    textcolor(textColor[BLK]);
@@ -752,15 +780,26 @@ void menu() {
    printf(" Use IJKL to select a block\n");
    printf(" Use WASD to rotate shape\n");
    printf(" Use SPACE to try unblock selected block\n");
-   printf(" Use ENTER to destroy selected block (max %u times)\n\n", bombs);
+   printf(" Use ENTER to destroy selected block (max %u times)\n", bombs);
+   printf("  0 - toggle color depth\n");
    printf(" >1 - top view\n");
    printf("  2 - ortho multiview\n");
    printf("  3 - isometric projection\n");
    printf("\n SPACE to start\n");
    drawb(0,0,256,192);
-   mode=1;
    while (1) {
       readKeys();
+      if (key0down()) {
+         printf("\x1B\x59\x31\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
+         if (col==255) { // was off
+            col=0;
+            printf(" x");
+         } else { // was on
+            clga(4, 136, 4, 8);
+            col=255;
+         }
+         pause(110);
+      }
       if (key1down()) {
          clga(4, 144, 4, 24);
          printf("\x1B\x59\x32\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
@@ -785,7 +824,7 @@ void menu() {
 } // menu()
 
 void main() {
-   co=26; ro=6; // working shape origin
+   ro=10; co=14; // working shape origin
    init(); // take care to set co,ro of working shape before call
    //printf(" sizeM:%u\n", sizeM);
    menu();
@@ -797,22 +836,45 @@ void main() {
    printf("\n");
    printf(" Shape sized:%ux%ux%u\n", sizeM, sizeM, sizeM);
    printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
-   //printf("                            Layer 0     Layer 1     Layer 2\n");
-   drawb(0,0,256,192);
 
-   ro=1;
-   co=14; drawShapeLayer(0, 0);
-   co=20; drawShapeLayer(1, 0);
-   co=26; drawShapeLayer(2, 0);
-   ro=6; co=20;
-   drawShapeSide();
-   //co=26; ro=1;
-   //drawShapeSide();
-   //drawShapeLayer(0, 0);
-   co=26; ro=6; // working shape origin
-   drawShapeSide();
-   //drawShapeLayer(0, 0);
+   if (mode==1) {
+      printf("\n\n                             Layer 0     Layer 1     Layer 2\n");
+      printf("\n\n\n                                                  Start topview\n");
+      drawb(0,0,256,192);
+      ro=1;
+      co=14; drawShapeLayer(0, 0);
+      co=20; drawShapeLayer(1, 0);
+      co=26; drawShapeLayer(2, 0);
+      ro=10; co=26;
+      drawShapeSide(); // initial top view
+   }
+   if (mode==2) {
+      ro=10;
+      co=1;
+      drawShapeSide();
+      co=7;
+      rotShape(3);
+      drawShapeSide();
+      co=14;
+      rotShape(3);
+      drawShapeSide();
+      co=20;
+      rotShape(3);
+      drawShapeSide();
+      ro=5;
+      co=14;
+      rotShape(1);
+      rotShape(2);
+      drawShapeSide();
+      ro=15;
+      rotShape(0);
+      rotShape(0);
+      drawShapeSide();
+      rotShape(2);
+   }
 
+   ro=10; co=14; // working shape origin
+   drawShapeSide();
    u08 c=0, r=0;
    textcolor(textColor[BLK]);
    drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
@@ -917,7 +979,7 @@ void main() {
          textcolor(textColor[BLK]);
          drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
-         clga( 0, 16, 64, 8);
+         clga( 0, 16, 80, 8); // 20 char
          printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
          printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
       }
@@ -939,7 +1001,7 @@ void main() {
          }
          drawb((co+c)*8+2, cy, 4, 4); // horizontal cursor
          drawb(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
-         clga( 0, 16, 100, 8);
+         clga( 0, 16, 80, 8); // 20 char
          printf("\x1B\x59\x22\x20"); // ESC Y r c: cursor r,c (add 0x20=32)
          printf(" blks:%u/%u bombs:%u\n", cblks, iblks, bombs);
       }
