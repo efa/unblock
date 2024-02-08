@@ -781,12 +781,13 @@ void menu() {
    printf(" Use WASD to rotate shape\n");
    printf(" Use SPACE to try unblock selected block\n");
    printf(" Use ENTER to destroy selected block (max %u times)\n", bombs);
-   printf("  0 - toggle color depth\n");
+   printf(" x0 - toggle color depth\n");
    printf(" >1 - top view\n");
    printf("  2 - ortho multiview\n");
    printf("  3 - isometric projection\n");
    printf("\n SPACE to start\n");
    drawb(0,0,256,192);
+   col=0;
    while (1) {
       readKeys();
       if (key0down()) {
@@ -798,7 +799,7 @@ void menu() {
             clga(4, 136, 4, 8);
             col=255;
          }
-         pause(110);
+         pause(130);
       }
       if (key1down()) {
          clga(4, 144, 4, 24);
@@ -849,6 +850,7 @@ void main() {
       drawShapeSide(); // initial top view
    }
    if (mode==2) {
+      drawb(0,0,256,192);
       ro=10;
       co=1;
       drawShapeSide();
@@ -996,6 +998,7 @@ void main() {
             shape[ret][r][c]=0;
             delTile(r, c);
             ret=getShapeDepth(r, c); // restore back
+            if (col!=255) col=ret;
             if(ret<sizeM) drawTile(r, c, shape[ret][r][c]);
             textcolor(textColor[BLK]);
          }
@@ -1007,6 +1010,8 @@ void main() {
       }
       pause(132);
       if (cblks==0) {
+         clga((co+c)*8+2, cy, 4, 4); // horizontal cursor
+         clga(cx, (ro+r)*8+2, 4, 4); // vertical   cursor
          printf(" you win!\n");
          while(1);
       } 
